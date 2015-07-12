@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+	<head>
+        <script src="js/phaser2.3.min.js"></script>
+        <script src="js/Utilities.js"></script>
+        <script src="js/Common.js"></script>
+        <script src="js/states/Intro.js"></script>
+        <script src="js/states/TitleMenu.js"></script>
+        <script src="js/states/Level1.js"></script>
+        <style>
+            body{margin:0}
+        </style>
+		<script>
+
+            var creepyGame = new Phaser.Game(1024, 768, Phaser.AUTO, 'creepyGame', { preload: preload, create: create });
+            var utility=new Utilities(creepyGame);
+            var common=new Common(creepyGame);
+
+            function preload() 
+            {
+                creepyGame.state.add("Level1",Level1);
+                creepyGame.state.add("Intro",Intro);
+                creepyGame.state.add("TitleMenu",TitleMenu);
+
+            }   
+
+            function create() 
+            {
+                creepyGame.state.start("Level1");
+            }
+
+		</script>
+    </head>
+    <body>
+    </body>
+</html>
