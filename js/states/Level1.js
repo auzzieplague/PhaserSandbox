@@ -7,57 +7,28 @@ var Level1 = function (game) {
 Level1.prototype = {
 
 	preload: function () {
-        
-        
-        utility.output("loading level 1","info");
-        utility.monitorPerformance(this);
-        
+        common.preload(this);
         this.game.load.image('backdrop', 'assets/levels/level1_backdrop.png');
-        //this.game.load.image('layer1', 'moonclouds');
         this.game.load.image('layer2', 'assets/levels/level1_pathway.png');
         this.game.load.image('foreground', 'assets/levels/level1_foreground.png');
-        
-        this.game.load.image('star', 'assets/sprites/star.png');
-        this.game.load.image('diamond', 'assets/sprites/diamond.png');
-        this.game.load.spritesheet('dude', 'assets/sprites/dude.png', 32, 48);
-        
+
         this.game.load.audio('sfx', 'assets/audio/fx_mixdown.ogg');
         this.game.load.audio('bg1', 'assets/audio/rain.mp3');
         this.game.load.audio('bg2', 'assets/audio/crickets.mp3');
-        
-         //particle emitter
-        this.game.load.image('fire1', 'assets/sprites/fire1.png');
-        this.game.load.image('fire2', 'assets/sprites/fire2.png');
-        this.game.load.image('fire3', 'assets/sprites/fire3.png');
-        this.game.load.image('smoke', 'assets/sprites/smoke-puff.png');
+   
         this.game.load.image('wizball', 'assets/sprites/wizball.png');
-        this.game.load.image('tiles1', 'assets/tiles/tiles1.png');
-
+        
         //tilemap
         this.game.load.tilemap('map', 'assets/maps/level1.json', null, Phaser.Tilemap.TILED_JSON);
+        this.game.load.image('tiles1', 'assets/tiles/tiles1.png');
 
-        //speech bubble
-        this.game.load.spritesheet('bubble-border','assets/sprites/speech2.png',9,9);
-        this.game.load.image('bubble-tail', 'assets/sprites/speech1.png');
-        this.game.load.bitmapFont('speech', 'assets/fonts/speech.png', 'assets/fonts/speech.xml');
 	},
    
     
   	create: function()
     {
-        
-        //dont stop game when leave browser
-        this.game.stage.disableVisibilityChange = true;
-        this.game.stage.backgroundColor = '#124184';
-        //this.game.world.setBounds(0, 0, 1600, 1200);
-        this.game.physics.startSystem(Phaser.Physics.P2JS);
-        this.game.physics.p2.restitution = 0.0; //bounciness
-        this.game.physics.p2.gravity.y = 1000;
-        this.game.physics.p2.friction = 5;
-        var worldMaterial = this.game.physics.p2.createMaterial('worldMaterial');
-        //  4 trues = the 4 faces of the world in left, right, top, bottom order
-        this.game.physics.p2.setWorldMaterial(worldMaterial, true, true, true, true);
-
+        common.create(this);
+ 
         //this.game.physics.p2.setPostBroadphaseCallback(checkOverlap, this);   //this is used to start the check
 
         map = this.game.add.tilemap('map');
@@ -73,18 +44,8 @@ Level1.prototype = {
         this.game.add.sprite(0, 0, 'layer2');
    
         
-        //setup player physics
-        player = this.game.add.sprite(this.game.width /2 , this.game.world.height - 300, 'dude');
-        this.game.physics.p2.enable(player);
-        player.body.collideWorldBounds = true;
-        player.body.fixedRotation = true;
-        player.anchor.setTo(0.5, 0.5);
-        //anims
-        player.animations.add('left', [0, 1, 2, 3], 10, true);
-        player.animations.add('right', [5, 6, 7, 8], 10, true);
-        //collisions
-        player.body.onBeginContact.add(this.playerHit, this);
-        this.game.camera.follow(player);
+      
+        common.setupPlayer(this);
         
         //setup collectables
         stars = this.game.add.group();
@@ -128,18 +89,12 @@ Level1.prototype = {
         bgsounds2.volume=0.5;
         bgsounds2.play(null, 0, 0.5, true);
         bgsounds1.play(null, 0, 0.5, true);
-        //bgsounds1.play();
-        //bgsounds2.play();
         
         fx = this.game.add.audio('sfx');
         fx.addMarker('ping', 10, 1.0);
-        //speech bubble
-        //var bubble = this.game.world.add(new SpeechBubble(this.game, 350, this.game.world.height - 700, 256, "test speech bubble text, with automatic wrapping."));
+      
         
-        //add foreground layer last so it renders on top
         this.game.add.sprite(0, 0, 'foreground');
-        
-        
 	},
     
     update: function()
@@ -197,7 +152,9 @@ Level1.prototype = {
                     break;
                 case "diamond":
                         this.removeCollectable(body.sprite);
-                        this.speak(player, "you ran over a trigger!",20,-20, 5000);
+                    break;
+                 case "wizball":
+                        this.speak(player, "this is awkward!",20,-20, 5000);
                     break;
                    
                 default:
@@ -205,12 +162,7 @@ Level1.prototype = {
             }
         } 
     },
-    
-    doTrigger : function (trigger){
-        // do speech bubble
-        //speak(player, "you ran over a trigger!",20,-20, 5000);
-    },
-    
+      
     
     lockspeak : function (sprite,text,timer,callback) {
         //here the player should be stopped
@@ -236,7 +188,7 @@ Level1.prototype = {
     },
     
     removeSpeech: function (bubble) {
-        //need to delete bubble
+        bubble.destroy();
         console.log(bubble);
     },
     
@@ -287,82 +239,5 @@ Level1.prototype = {
     
 }
 
-var SpeechBubble = function(x, y, width, text,currentState) {
-    Phaser.Sprite.call(this, currentState, x, y);
-    
-    // Some sensible minimum defaults
-    width = width || 27;
-    var height = 18;
-    
-    // Set up our text and run our custom wrapping routine on it
-    this.bitmapText = currentState.add.bitmapText(x + 12, y + 4, 'speech', text, 22);
-    SpeechBubble.wrapBitmapText(this.bitmapText, width);
-    
-    
-    // Calculate the width and height needed for the edges
-    var bounds = this.bitmapText.getLocalBounds();
-    
-    
-    if (bounds.width + 18 > width) {
-        width = bounds.width + 18;
-    }
-    
-    if (bounds.height + 14 > height) {
-        height = bounds.height + 14;
-    }
-    
-    // Create all of our corners and edges
-    this.borders = [
-        currentState.make.tileSprite(x + 9, y + 9, width - 9, height - 9, 'bubble-border', 4),
-        currentState.make.image(x, y, 'bubble-border', 0),
-        currentState.make.image(x + width, y, 'bubble-border', 2),
-        currentState.make.image(x + width, y + height, 'bubble-border', 8),
-        currentState.make.image(x, y + height, 'bubble-border', 6),
-        currentState.make.tileSprite(x + 9, y, width - 9, 9, 'bubble-border', 1),
-        currentState.make.tileSprite(x + 9, y + height, width - 9, 9, 'bubble-border', 7),
-        currentState.make.tileSprite(x, y + 9, 9, height - 9, 'bubble-border', 3),
-        currentState.make.tileSprite(x + width, y + 9, 9, height - 9, 'bubble-border', 5)
-    ];  
-    
-    // Add all of the above to this sprite
-    for (var b = 0, len = this.borders.length; b < len; b++) {
-        this.addChild(this.borders[b]);   
-    }
 
-    // Add the tail
-    this.tail = this.addChild(currentState.make.image(x + 18, y + 3 + height, 'bubble-tail'));
-
-    // Add our text last so it's on top
-    this.addChild(this.bitmapText);
-    this.bitmapText.tint = 0x111111;
-    
-    // Offset the position to be centered on the end of the tail
-    this.pivot.set(x + 25, y + height + 24);
-  
-};
-
-
-SpeechBubble.prototype = Object.create(Phaser.Sprite.prototype);
-SpeechBubble.prototype.constructor = SpeechBubble;
-
-SpeechBubble.wrapBitmapText = function (bitmapText, maxWidth) {
-    var words = bitmapText.text.split(' '), output = "", test = "";
-    
-    for (var w = 0, len = words.length; w < len; w++) {
-        test += words[w] + " ";
-        bitmapText.text = test;
-        bitmapText.updateText();
-        if (bitmapText.textWidth > maxWidth) {
-            output += "\n" + words[w] + " ";
-        }
-        else {
-            output += words[w] + " ";
-        }
-        test = output;
-    }
-    
-    output = output.replace(/(\s)$/gm, ""); // remove trailing spaces
-    bitmapText.text = output;
-    bitmapText.updateText();
-}
 //*/
