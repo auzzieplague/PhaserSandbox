@@ -8,7 +8,7 @@
  </imagelayer>
  <layer name="tiles" width="100" height="25">
   <data encoding="base64" compression="zlib">
-   eJztziEOgDAABMEmQAv//zAGUUFAtUfIjDlxZksBAAD4rjUdwDT14WvTKgAYqb0s4xzpAIDLlg64saQDfmBPBwAAQOcEIyMARw==
+   eJzt1TsKgDAURNGA3+x/wzaCEiRYiINyTvPK3GZIKQAAQM/SXN41pgPoenIf84134AvaXfhH4GAfOTUdALCb0gEXhnTAD6zpAAAAONkAX+4Afw==
   </data>
  </layer>
  <objectgroup name="collisions">

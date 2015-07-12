@@ -197,16 +197,12 @@ Level1.prototype = {
                     break;
                 case "diamond":
                         this.removeCollectable(body.sprite);
+                        this.speak(player, "you ran over a trigger!",20,-20, 5000);
                     break;
                    
                 default:
                     utility.output("no player collision handler in playerHit for "+body.sprite.key);
             }
-                    /*
-            if (body.sprite.key=="star"){
-                this.removeCollectable(body.sprite);
-            }
-            */
         } 
     },
     
@@ -229,14 +225,14 @@ Level1.prototype = {
         //game.time.events.add(Phaser.Timer.SECOND * 4, removeSpeech(bubble), this);
         //^timer events broken, use tweening instead .. use onComplete method for callback
 
-        var bubble = sprite.addChild(new SpeechBubble(x, y, 256, text));
+        var bubble = sprite.addChild(new SpeechBubble(x, y, 256, text,this.game));
         bubble.alpha=0.8;
         //to(properties, duration, ease, autoStart, delay, repeat, yoyo)
-        var tween=game.add.tween(bubble).to( { alpha: 0 }, 2000, 
+        var tween=this.game.add.tween(bubble).to( { alpha: 0 }, 2000, 
                                             Phaser.Easing.Linear.None, 
                                             true, 3000, 0, false);
 
-        tween.onComplete.add(removeSpeech,this);
+        tween.onComplete.add(this.removeSpeech,this);
     },
     
     removeSpeech: function (bubble) {
@@ -290,16 +286,16 @@ Level1.prototype = {
     //*/
     
 }
-/*
-var SpeechBubble = function(x, y, width, text) {
-    Phaser.Sprite.call(this, game, x, y);
+
+var SpeechBubble = function(x, y, width, text,currentState) {
+    Phaser.Sprite.call(this, currentState, x, y);
     
     // Some sensible minimum defaults
     width = width || 27;
     var height = 18;
     
     // Set up our text and run our custom wrapping routine on it
-    this.bitmapText = game.add.bitmapText(x + 12, y + 4, 'speech', text, 22);
+    this.bitmapText = currentState.add.bitmapText(x + 12, y + 4, 'speech', text, 22);
     SpeechBubble.wrapBitmapText(this.bitmapText, width);
     
     
@@ -317,15 +313,15 @@ var SpeechBubble = function(x, y, width, text) {
     
     // Create all of our corners and edges
     this.borders = [
-        game.make.tileSprite(x + 9, y + 9, width - 9, height - 9, 'bubble-border', 4),
-        game.make.image(x, y, 'bubble-border', 0),
-        game.make.image(x + width, y, 'bubble-border', 2),
-        game.make.image(x + width, y + height, 'bubble-border', 8),
-        game.make.image(x, y + height, 'bubble-border', 6),
-        game.make.tileSprite(x + 9, y, width - 9, 9, 'bubble-border', 1),
-        game.make.tileSprite(x + 9, y + height, width - 9, 9, 'bubble-border', 7),
-        game.make.tileSprite(x, y + 9, 9, height - 9, 'bubble-border', 3),
-        game.make.tileSprite(x + width, y + 9, 9, height - 9, 'bubble-border', 5)
+        currentState.make.tileSprite(x + 9, y + 9, width - 9, height - 9, 'bubble-border', 4),
+        currentState.make.image(x, y, 'bubble-border', 0),
+        currentState.make.image(x + width, y, 'bubble-border', 2),
+        currentState.make.image(x + width, y + height, 'bubble-border', 8),
+        currentState.make.image(x, y + height, 'bubble-border', 6),
+        currentState.make.tileSprite(x + 9, y, width - 9, 9, 'bubble-border', 1),
+        currentState.make.tileSprite(x + 9, y + height, width - 9, 9, 'bubble-border', 7),
+        currentState.make.tileSprite(x, y + 9, 9, height - 9, 'bubble-border', 3),
+        currentState.make.tileSprite(x + width, y + 9, 9, height - 9, 'bubble-border', 5)
     ];  
     
     // Add all of the above to this sprite
@@ -334,7 +330,7 @@ var SpeechBubble = function(x, y, width, text) {
     }
 
     // Add the tail
-    this.tail = this.addChild(game.make.image(x + 18, y + 3 + height, 'bubble-tail'));
+    this.tail = this.addChild(currentState.make.image(x + 18, y + 3 + height, 'bubble-tail'));
 
     // Add our text last so it's on top
     this.addChild(this.bitmapText);
