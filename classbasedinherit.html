@@ -1,0 +1,29 @@
+    <!doctype html>
+    <html>
+        <head>
+            <script>
+            "use strict";
+
+            class Common {
+                constructor (){
+                    console.info('instantiating common components');
+                }
+
+            }
+
+            class Level1 extends Common {
+                 constructor (){
+                    super();    //call parent constructor
+                    console.log('creating new Level1');
+                }
+            }
+
+            var test=new Level1();
+
+            console.info(Object.keys(window));
+            </script>
+
+        </head>
+        <body>
+        </body>
+    </html>

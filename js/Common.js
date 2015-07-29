@@ -1,152 +1,224 @@
 /*
-    speechbubbles, tile finding and other things common to all levels
-*/
+ * note on documentation: jsdoc doesn't handle loose module pattern very well, the internal
+ * reference to self gets inserted into the chain eg THEGAME.player is documented as THEGAME.common.Player
+ * @alias seems like it should work but it doesn't so using @name to force name change
+ */
 
-var Common = function (game){
-};
 
-Common.prototype ={
-    preload:function(currentState) {
-        
-        utility.output("loading common assests","info");
-        utility.monitorPerformance(currentState);
-        
-        currentState.game.load.image('star', 'assets/sprites/star.png');
-        currentState.game.load.image('diamond', 'assets/sprites/diamond.png');
-        currentState.game.load.spritesheet('dude', 'assets/sprites/dude.png', 32, 48);
-        currentState.game.load.spritesheet('bubble-border','assets/sprites/speech2.png',9,9);
-        currentState.game.load.image('bubble-tail', 'assets/sprites/speech1.png');
-        currentState.game.load.bitmapFont('speech', 'assets/fonts/speech.png', 'assets/fonts/speech.xml');
-        
-        /*//particle emitter
-        this.game.load.image('fire1', 'assets/sprites/fire1.png');
-        this.game.load.image('fire2', 'assets/sprites/fire2.png');
-        this.game.load.image('fire3', 'assets/sprites/fire3.png');
-        this.game.load.image('smoke', 'assets/sprites/smoke-puff.png');
-        //*/
-
-    },
-    
-    create:function (currentState){
-         //dont stop game when leave browser
-        currentState.game.stage.disableVisibilityChange = true;
-        currentState.game.stage.backgroundColor = '#124184';
-        //currentState.game.world.setBounds(0, 0, 1600, 1200);
-        currentState.game.physics.startSystem(Phaser.Physics.P2JS);
-        currentState.game.physics.p2.restitution = 0.0; //bounciness
-        currentState.game.physics.p2.gravity.y = 1000;
-        currentState.game.physics.p2.friction = 5;
-        var worldMaterial = currentState.game.physics.p2.createMaterial('worldMaterial');
-        //  4 trues = the 4 faces of the world in left, right, top, bottom order
-        currentState.game.physics.p2.setWorldMaterial(worldMaterial, true, true, true, true);
-        
-         
-        
-    },
-    
-    setupPlayer : function (currentState) {
-     
-        player = currentState.game.add.sprite(currentState.game.width /2 , currentState.game.world.height - 300, 'dude');
-        currentState.game.physics.p2.enable(player);
-        player.body.collideWorldBounds = true;
-        player.body.fixedRotation = true;
-        player.anchor.setTo(0.5, 0.5);
-        //anims
-        player.animations.add('left', [0, 1, 2, 3], 10, true);
-        player.animations.add('right', [5, 6, 7, 8], 10, true);
-        //collisions
-        player.body.onBeginContact.add(currentState.playerHit, currentState);
-        currentState.game.camera.follow(player);
-    },
-     /**
-    * helper function to return array of info for matching tile id,
-    useful for spawning emitters on specific tiles
+/**
+ * Includes all common level data, such as player animations and controls
+ * @class
+ */
+var THEGAME = (function (common) {
+ 
+    /**
+    * player object, houses phaser player object
+    * @memberof THEGAME
+    * @name player
     */
-    getTileLocations:function (layer, id){
-        var h=0; var v=0; var results = [];
-        while (v < layer.height){
-            h=0;
-            while (h < layer.width){
-                if ( layer.data[v][h].index==id ){
-                    var info={x:layer.data[v][h].worldX ,
-                              y:layer.data[v][h].worldY,
-                              width:layer.data[v][h].width,
-                              height: layer.data[v][h].height,
-                              tilex:h,
-                              tiley:v,
-                              adjustedx:layer.data[v][h].worldX+layer.data[v][h].centerX,
-                              adjustedy:layer.data[v][h].worldY+layer.data[v][h].centerY
-                             };
-                    results.push(info)
+    common.player = {};
+    common.currentstate = {};
+    common.nextlevel = {};  //for preloading
+    
+    /**
+    * preload common assets such as player animations and gui 
+    * @memberof THEGAME
+    * @name preload
+    */
+    common.preload = function () {
+        console.info("common preload method");
+        Utilities.monitorPerformance(common.currentstate);
+        
+        var cs= common.currentstate.game;
+        cs.load.image('star', 'assets/sprites/star.png');
+        cs.load.image('diamond', 'assets/sprites/diamond.png');
+        cs.load.spritesheet('cat', 'assets/sprites/catfull001.png', 64, 64);
+        cs.load.spritesheet('bubble-border','assets/sprites/speech2.png',9,9);
+        cs.load.image('bubble-tail', 'assets/sprites/speech1.png');
+        cs.load.bitmapFont('speech', 'assets/fonts/speech.png', 'assets/fonts/speech.xml');
+    };
+
+    /**
+    * setup common elements of game stage such as world physics, player controls
+    * @memberof THEGAME
+    * @name create
+    */
+    common.create = function () {
+        console.info("common create method");
+        
+        var cs= common.currentstate.game;
+        cs.stage.disableVisibilityChange = true;
+        cs.stage.backgroundColor = '#124184';
+        //cs.world.setBounds(0, 0, 1600, 1200);
+        cs.physics.startSystem(Phaser.Physics.P2JS);
+        cs.physics.p2.restitution = 0.0; //bounciness
+        cs.physics.p2.gravity.y = 1000;
+        cs.physics.p2.friction = 5;
+        var worldMaterial = cs.physics.p2.createMaterial('worldMaterial');
+        //  4 trues = the 4 faces of the world in left, right, top, bottom order
+        cs.physics.p2.setWorldMaterial(worldMaterial, true, true, true, true);
+        
+        //THEGAME.phaser.scale.fullScreenScaleMode = Phaser.ScaleManager.EXACT_FIT;
+        //THEGAME.phaser.scale.startFullScreen(false);
+    };
+    
+    /**
+    * setup player sprites, animations and physics body, game camera mode
+    * @memberof THEGAME
+    * @name setupPlayer
+    */
+    common.setupPlayer = function (currentState) {
+        
+        common.player = currentState.game.add.sprite(THEGAME.playerSpawnX,THEGAME.playerSpawnY,'cat');
+        currentState.game.physics.p2.enable( common.player);
+        common.player.body.collideWorldBounds = true;
+        common.player.body.fixedRotation = true;
+        common.player.anchor.setTo(0.5, 0.5);
+        common.player.animations.add('walk',  currentState.math.numberArray(0,15), 30, true);
+        common.player.animations.add('stand',currentState.math.numberArray(20,34), 10, true);
+        common.player.animations.add('leap',currentState.math.numberArray(42,51 ), 20, false);
+        common.player.body.onBeginContact.add(currentState.playerHit, currentState);
+        currentState.game.camera.follow(common.player);
+        common.player.jumpstate=0;
+    };    
+    
+    
+    /**
+    * common update method, includes player controls and general non level specific updates
+    * @memberof THEGAME
+    * @name update
+    */
+    common.update = function () {
+        currentState=common.currentstate;
+        player=common.player;
+        cursors = currentState.game.input.keyboard.createCursorKeys();
+            //var player=currentPlayer;
+            //var player=currentState.player;
+            
+            //if player is not jumping
+            if (player.jumpstate==0 || player.airmove==1){
+                
+                //  Reset the players velocity (movement)
+                //player.body.velocity.x = 0;
+                
+                if (cursors.left.isDown || currentState.game.input.keyboard.isDown(Phaser.Keyboard.A)){
+           
+                    player.body.velocity.x = -150;
+                    player.animations.play('walk');
+                    player.scale.setTo(-1,1);
                 }
-            h++;
+                else if (cursors.right.isDown || currentState.game.input.keyboard.isDown(Phaser.Keyboard.D)){
+                    //  Move to the right
+                    player.body.velocity.x = 150;
+                    player.animations.play('walk');
+                    player.scale.setTo(1,1); 
+                }
+                else{
+                    player.animations.play('stand');
+   
+                }
+                
+                //  Allow the player to jump if they are touching the ground.
+                if ((   cursors.up.isDown || 
+                        currentState.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) 
+                        &&  player.jumpstate==0){
+                    
+                    if (player.jumpstate==0){
+                        player.animations.play('leap');
+                        player.jumpstate=1;
+                        player.body.velocity.y = -550;
+                    }
+                }
+            };
+
+            if (common.checkIfCanJump()) { 
+                player.jumpstate=0;
+            };
+        
+            common.updateParallax();
+    };
+    
+    
+    /**
+    * Check to see if player is standing on something, needs more work
+    * can currently jump off of non collidable items such as collectables
+    * @memberof THEGAME
+    * @name checkIfCanJump
+    */
+    common.checkIfCanJump= function () {
+        var yAxis = p2.vec2.fromValues(0, 1);
+        var result = false;
+
+        for (var i = 0; i < common.currentstate.game.physics.p2.world.narrowphase.contactEquations.length; i++)
+        {
+            var c = common.currentstate.game.physics.p2.world.narrowphase.contactEquations[i];
+
+            if (c.bodyA === common.player.body.data || c.bodyB === common.player.body.data)
+            {
+                var d = p2.vec2.dot(c.normalA, yAxis); // Normal dot Y-axis
+                if (c.bodyA === player.body.data) d *= -1;
+                if (d > 0.5) result = true;
             }
-        v++;
         }
-       return results;
-    }
-};
-
-
-    var SpeechBubble = function(x, y, width, text,currentState) {
-    Phaser.Sprite.call(this, currentState, x, y);
-    
-    // Some sensible minimum defaults
-    width = width || 27;
-    var height = 18;
-    
-    // Set up our text and run our custom wrapping routine on it
-    this.bitmapText = currentState.add.bitmapText(x + 12, y + 4, 'speech', text, 22);
-    SpeechBubble.wrapBitmapText(this.bitmapText, width);
-    
-    
-    // Calculate the width and height needed for the edges
-    var bounds = this.bitmapText.getLocalBounds();
-    
-    
-    if (bounds.width + 18 > width) {
-        width = bounds.width + 18;
+        return result;
     }
     
-    if (bounds.height + 14 > height) {
-        height = bounds.height + 14;
-    }
-    
-    // Create all of our corners and edges
-    this.borders = [
-        currentState.make.tileSprite(x + 9, y + 9, width - 9, height - 9, 'bubble-border', 4),
-        currentState.make.image(x, y, 'bubble-border', 0),
-        currentState.make.image(x + width, y, 'bubble-border', 2),
-        currentState.make.image(x + width, y + height, 'bubble-border', 8),
-        currentState.make.image(x, y + height, 'bubble-border', 6),
-        currentState.make.tileSprite(x + 9, y, width - 9, 9, 'bubble-border', 1),
-        currentState.make.tileSprite(x + 9, y + height, width - 9, 9, 'bubble-border', 7),
-        currentState.make.tileSprite(x, y + 9, 9, height - 9, 'bubble-border', 3),
-        currentState.make.tileSprite(x + width, y + 9, 9, height - 9, 'bubble-border', 5)
-    ];  
-    
-    // Add all of the above to this sprite
-    for (var b = 0, len = this.borders.length; b < len; b++) {
-        this.addChild(this.borders[b]);   
-    }
+    /**
+    * change the offset of the background image based on players current position
+    * @memberof THEGAME
+    * @name updateParallax
+    */
+    common.updateParallax= function (){
+        //could build support for an array of bg images with mutiple scaling
+        //if (THEGAME.player.x>(THEGAME.width/2))
+        THEGAME.bgsprite.tilePosition.x =  THEGAME.player.x*0.2;
+        
+    };
+        
+    return common;
+}(THEGAME || {})); 
 
-    // Add the tail
-    this.tail = this.addChild(currentState.make.image(x + 18, y + 3 + height, 'bubble-tail'));
-
-    // Add our text last so it's on top
-    this.addChild(this.bitmapText);
-    this.bitmapText.tint = 0x111111;
-    
-    // Offset the position to be centered on the end of the tail
-    this.pivot.set(x + 25, y + height + 24);
-  
-};
+//3rd party speech bubble stuff (make our own later)
 
 
-SpeechBubble.prototype = Object.create(Phaser.Sprite.prototype);
-SpeechBubble.prototype.constructor = SpeechBubble;
+THEGAME.SpeechBubble = function(x, y, width, text,currentState) {
+        Phaser.Sprite.call(this, currentState, x, y);
+        width = width || 27;
+        var height = 18;
 
-SpeechBubble.wrapBitmapText = function (bitmapText, maxWidth) {
+        // Set up our text and run our custom wrapping routine on it
+        this.bitmapText = currentState.add.bitmapText(x + 12, y + 4, 'speech', text, 22);
+        SpeechBubble.wrapBitmapText(this.bitmapText, width);
+        var bounds = this.bitmapText.getLocalBounds();
+        
+        if (bounds.width + 18 > width) width = bounds.width + 18;
+        if (bounds.height + 14 > height) height = bounds.height + 14;
+        
+        this.borders = [
+            currentState.make.tileSprite(x + 9, y + 9, width - 9, height - 9, 'bubble-border', 4),
+            currentState.make.image(x, y, 'bubble-border', 0),
+            currentState.make.image(x + width, y, 'bubble-border', 2),
+            currentState.make.image(x + width, y + height, 'bubble-border', 8),
+            currentState.make.image(x, y + height, 'bubble-border', 6),
+            currentState.make.tileSprite(x + 9, y, width - 9, 9, 'bubble-border', 1),
+            currentState.make.tileSprite(x + 9, y + height, width - 9, 9, 'bubble-border', 7),
+            currentState.make.tileSprite(x, y + 9, 9, height - 9, 'bubble-border', 3),
+            currentState.make.tileSprite(x + width, y + 9, 9, height - 9, 'bubble-border', 5)
+        ];  
+
+        for (var b = 0, len = this.borders.length; b < len; b++) {
+            this.addChild(this.borders[b]);   
+        }
+        this.tail = this.addChild(currentState.make.image(x + 18, y + 3 + height, 'bubble-tail'));
+        this.addChild(this.bitmapText);
+        this.bitmapText.tint = 0x111111;
+        this.pivot.set(x + 25, y + height + 24);
+    };
+
+THEGAME.SpeechBubble.prototype = Object.create(Phaser.Sprite.prototype);
+THEGAME.SpeechBubble.prototype.constructor = THEGAME.SpeechBubble;
+
+THEGAME.SpeechBubble.wrapBitmapText = function (bitmapText, maxWidth) {
     var words = bitmapText.text.split(' '), output = "", test = "";
     
     for (var w = 0, len = words.length; w < len; w++) {
@@ -166,3 +238,4 @@ SpeechBubble.wrapBitmapText = function (bitmapText, maxWidth) {
     bitmapText.text = output;
     bitmapText.updateText();
 }
+
