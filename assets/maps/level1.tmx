@@ -4,11 +4,11 @@
   <image source="../tiles/tiles1.png" trans="ff00ff" width="320" height="320"/>
  </tileset>
  <imagelayer name="background">
-  <image source="../levels/level1.png"/>
+  <image source="../../../resources/leveldesign/level1.png"/>
  </imagelayer>
  <layer name="tiles" width="100" height="25">
   <data encoding="base64" compression="zlib">
-   eJzt1TsKgDAURNGA3+x/wzaCEiRYiINyTvPK3GZIKQAAQM/SXN41pgPoenIf84134AvaXfhH4GAfOTUdALCb0gEXhnTAD6zpAAAAONkAX+4Afw==
+   eJzt1zEOgCAQRUESNej9L2xjYcE2JrBIZkqqX+wrKIVV1ewBMDF9QEwfENNHf0fjbR++gi9696E//sz9Qkwf41zZAwAerX9fti17wALO7AEAAPByA2NUAFs=
   </data>
  </layer>
  <objectgroup name="collisions">

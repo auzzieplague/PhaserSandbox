@@ -22,8 +22,8 @@ THEGAME.LEVEL1 = function (level) {
         this.game.load.image('layer2', 'assets/levels/level1_pathway.png');
         this.game.load.image('foreground', 'assets/levels/level1_foreground.png');
         this.game.load.audio('sfx', 'assets/audio/fx_mixdown.ogg');
-        this.game.load.audio('bg1', 'assets/audio/rain.mp3');
-        this.game.load.audio('bg2', 'assets/audio/crickets.mp3');
+        this.game.load.audio('bg1', 'assets/audio/rain.ogg');
+        this.game.load.audio('bg2', 'assets/audio/crickets.ogg');
         this.game.load.image('wizball', 'assets/sprites/wizball.png');
         this.game.load.tilemap('map', 'assets/maps/level1.json', null, Phaser.Tilemap.TILED_JSON);
         this.game.load.image('tiles1', 'assets/tiles/tiles1.png');   

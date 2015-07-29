@@ -2,7 +2,7 @@
  "layers":[
         {
          "height":0,
-         "image":"..\/levels\/level1.png",
+         "image":"..\/..\/..\/resources\/leveldesign\/level1.png",
          "name":"background",
          "opacity":1,
          "type":"imagelayer",
